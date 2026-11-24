@@ -1,0 +1,16 @@
+# Monty - Python expert
+-r ../../requirements.txt
+
+# Monty runs the workflows in core/workflows/, so their dependencies live in
+# the root requirements.txt (openmeteo-requests, requests-cache,
+# retry-requests, pandas). Nothing extra is needed here.
+
+# --- the stack Monty is prompted to recommend on the chat path -----------
+# Keep this list and the stack section of agents.md in sync.
+# numpy>=1.26
+# xarray>=2024.1
+# rasterio>=1.3
+# rioxarray>=0.15
+# geopandas>=1.0
+# shapely>=2.0
+# dask[array]>=2024.1

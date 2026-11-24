@@ -1,0 +1,11 @@
+# Development and test only -- nothing at run time imports these.
+#
+#   pip install -r requirements-dev.txt
+#
+# pytest runs the validation tests the way the validation plan asks
+# (`pytest` passes is its "done when"); scikit-learn is the independent
+# cross-check of the agreement metrics in tests/test_metrics.py. The other
+# tests in this repo stay plain scripts and need neither.
+-r requirements.txt
+pytest>=8.0.0
+scikit-learn>=1.4.0

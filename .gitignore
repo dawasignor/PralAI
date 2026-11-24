@@ -1,0 +1,44 @@
+.env
+agents/*/.env
+
+# Agent session logs: what the user typed, word for word (core/memory.py).
+agents/*/memory.local.md
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.log
+logs/
+.cache
+.cache.sqlite
+
+# Everything the Earth-observation workflows write. `outputs/<event_id>/` is
+# the default for every one of them and the only one anybody should use --
+# `output_dir` is still a parameter, so a caller can name somewhere else, and
+# `git status` after a raster run is the only thing that catches that.
+#
+# Regenerable from the workflow that made it, and large: one flood event ran to
+# 72 MB of GeoTIFFs. The repo already draws this line -- rasters go to disk and
+# statistics go into the JSON. This is the disk half.
+outputs/
+
+# Output of earlier runs, before `outputs/` was the uniform default. Kept
+# ignored so an old working tree does not suddenly want to commit 100 MB.
+data/
+
+# Per-session records: the AOI, the window and the running digest, one JSON
+# file per sessionId. Local state of a running console, not source.
+sessions/
+
+# Thesis experiment caches and results stay local, not in git (decided
+# 2026-10-10): rasters alone ran to 160 MB.
+experiments/
+results/
+
+# Per-run folders (REFACTOR_PLAN 4.3): uncached runs, RQ5 batches and the
+# CP0 baseline. Local output, like experiments/ and results/.
+runs/
+
+# Office lock files (an open BUG_TRACKER.xlsx leaves one beside it).
+~$*

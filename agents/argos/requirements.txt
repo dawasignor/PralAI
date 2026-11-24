@@ -1,0 +1,6 @@
+# Agent Argos - Orchestrator
+# Install the shared core first; this file adds only what Argos needs on top.
+-r ../../requirements.txt
+
+# Argos has no tools and needs no extra dependencies -- it routes and
+# synthesises text only. Provider packages live in the root requirements.txt.

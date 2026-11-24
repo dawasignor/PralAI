@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sample labelling</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d232b; --muted:#5f6b78; --line:#d9dee4;
+          --accent:#1f6feb; --flood:#1f6feb; --dry:#8a6d3b; --pre:#2e8b57; --unobs:#7a7f87;
+          --warn:#b54708; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1318; --card:#171c23; --ink:#e6eaef; --muted:#9aa5b1; --line:#2a313a;
+            --accent:#58a6ff; --flood:#58a6ff; --dry:#d0a85c; --pre:#5ec58a; --unobs:#9aa0a8;
+            --warn:#f5a25d; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { position:sticky; top:0; z-index:5; background:var(--card); border-bottom:1px solid var(--line);
+           padding:10px 16px; display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  header h1 { font-size:15px; margin:0; font-weight:600; }
+  .muted { color:var(--muted); }
+  .bar { height:6px; width:180px; background:var(--line); border-radius:3px; overflow:hidden; }
+  .bar > i { display:block; height:100%; background:var(--accent); width:0; }
+  main { max-width:1180px; margin:0 auto; padding:16px; }
+  .img { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px;
+         margin-bottom:12px; }
+  .img.active { border-color:var(--accent); box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+  .img h2 { font-size:13px; margin:0 0 8px; font-weight:600; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .tag { font-size:11px; padding:1px 7px; border-radius:10px; border:1px solid var(--line); color:var(--muted); font-weight:500; }
+  .tag.warn { color:var(--warn); border-color:var(--warn); }
+  .chips { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; }
+  figure { margin:0; }
+  .chip { position:relative; aspect-ratio:1; background:#000; border-radius:6px; overflow:hidden; }
+  .chip img { width:100%; height:100%; display:block; image-rendering:pixelated; }
+  .chip .loading { position:absolute; inset:0; display:grid; place-items:center; color:#aaa; font-size:12px; }
+  .chip::before, .chip::after { content:""; position:absolute; background:rgba(255,40,40,.85); pointer-events:none; }
+  .chip::before { left:50%; top:0; bottom:0; width:1px; transform:translateX(-0.5px);
+                  -webkit-mask:linear-gradient(#000 0 44%, transparent 44% 56%, #000 56%); mask:linear-gradient(#000 0 44%, transparent 44% 56%, #000 56%); }
+  .chip::after { top:50%; left:0; right:0; height:1px; transform:translateY(-0.5px);
+                 -webkit-mask:linear-gradient(90deg,#000 0 44%, transparent 44% 56%, #000 56%); mask:linear-gradient(90deg,#000 0 44%, transparent 44% 56%, #000 56%); }
+  .chip .cell { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+                border:1px solid #ff2828; pointer-events:none; }
+  figcaption { font-size:11px; color:var(--muted); margin-top:3px; }
+  .ctl { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+  button { font:inherit; border:1px solid var(--line); background:var(--card); color:var(--ink);
+           border-radius:7px; padding:5px 10px; cursor:pointer; }
+  button:hover { border-color:var(--muted); }
+  button.on { color:#fff; border-color:transparent; }
+  button.on[data-class=flood] { background:var(--flood); }
+  button.on[data-class=not_flood] { background:var(--dry); }
+  button.on[data-class=preexisting_water] { background:var(--pre); }
+  button.on[data-class=unobservable] { background:var(--unobs); }
+  button.on.conf { background:var(--accent); }
+  kbd { font:11px ui-monospace, monospace; border:1px solid var(--line); border-bottom-width:2px;
+        border-radius:4px; padding:0 4px; color:var(--muted); }
+  select, input[type=text] { font:inherit; padding:4px 6px; border:1px solid var(--line); border-radius:6px;
+                             background:var(--card); color:var(--ink); }
+  input.notes { flex:1 1 220px; }
+  .save { display:flex; gap:12px; align-items:center; justify-content:flex-end; margin:16px 0 40px; }
+  .save button { background:var(--accent); color:#fff; border:0; padding:8px 18px; font-weight:600; }
+  .save button:disabled { opacity:.4; cursor:default; }
+  .key { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin-bottom:12px; font-size:13px; }
+  .key dt { font-weight:600; display:inline; } .key dd { display:inline; margin:0 14px 0 4px; }
+  .err { color:var(--warn); }
+  .banner { display:none; margin:12px 0 0; padding:10px 14px; border-radius:8px; font-weight:600;
+            background:color-mix(in srgb, var(--warn) 16%, var(--card)); color:var(--warn);
+            border:1px solid var(--warn); }
+  .banner.show { display:block; }
+  input.bad { border-color:var(--warn); outline:2px solid color-mix(in srgb, var(--warn) 40%, transparent); }
+  @media (max-width: 760px) { .chips { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Sample labelling</h1>
+  <span id="progress" class="muted"></span>
+  <div class="bar"><i id="bar"></i></div>
+  <label class="muted">Labeller <input id="labeller" type="text" size="6" placeholder="L1"></label>
+  <span id="timer" class="muted"></span>
+</header>
+<main>
+  <div class="key">
+    <dl style="margin:0">
+      <dt>flood <kbd>1</kbd></dt><dd>new standing water at the cross, absent in the pre-event image</dd>
+      <dt>not_flood <kbd>2</kbd></dt><dd>clearly dry ground at the cross</dd>
+      <dt>preexisting <kbd>3</kbd></dt><dd>water already there before (paddy, tank, channel)</dd>
+      <dt>unobservable <kbd>4</kbd></dt><dd>the cross cannot be seen &mdash; give a reason</dd>
+    </dl>
+    <div class="muted" style="margin-top:6px">Confidence <kbd>7</kbd> low <kbd>8</kbd> medium <kbd>9</kbd> high
+      (moves to the next image once that image is complete).
+      Reason <kbd>C</kbd> cloud <kbd>S</kbd> shadow <kbd>V</kbd> canopy <kbd>B</kbd> built-up <kbd>N</kbd> no image.
+      <kbd>&darr;</kbd>/<kbd>&uarr;</kbd> next / previous image, <kbd>Enter</kbd> save.
+      Label the 10&nbsp;m cell under the cross. False colour (SWIR/NIR/red): water is dark, vegetation green, cloud cyan-white.</div>
+  </div>
+  <div id="point"></div>
+  <div id="banner" class="banner" role="alert"></div>
+  <div class="save">
+    <span id="status" class="muted"></span>
+    <button id="saveBtn" disabled>Save and next</button>
+  </div>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+const REASON_KEYS = { c: "cloud", s: "cloud_shadow", v: "canopy", b: "built_up", n: "no_image" };
+const CONF_KEYS = { "7": 1, "8": 2, "9": 3 };
+// Same rule the server applies; checked here so a bad name is refused at
+// entry instead of every save failing later.
+const PSEUDONYM = /^[A-Za-z0-9_-]{1,16}$/;
+let session = null, queue = [], current = null, labels = {}, active = 0, shownAt = 0, total = 0, doneCount = 0;
+
+function banner(msg) {
+  const b = $("#banner");
+  b.textContent = msg || "";
+  b.classList.toggle("show", !!msg);
+  if (msg) b.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function labeller() {
+  let v = $("#labeller").value.trim();
+  try { if (!v) v = localStorage.getItem("labeller") || ""; } catch (e) {}
+  $("#labeller").value = v;
+  return v;
+}
+$("#labeller").addEventListener("change", () => {
+  const v = $("#labeller").value.trim();
+  if (v && !PSEUDONYM.test(v)) {
+    $("#labeller").classList.add("bad");
+    $("#point").innerHTML = `<p class="err">"${v.replace(/[<&>"]/g, "")}" cannot be used: a pseudonym is 1-16 letters, digits, - or _ with no spaces (for example labeller-1 or L1).</p>`;
+    return;
+  }
+  $("#labeller").classList.remove("bad");
+  try { localStorage.setItem("labeller", v); } catch (e) {}
+  start();
+});
+
+async function getJSON(url, opts) {
+  const r = await fetch(url, opts);
+  const body = await r.json();
+  if (!r.ok) throw new Error(body.error || r.statusText);
+  return body;
+}
+
+async function start() {
+  session = await getJSON("/api/session");
+  $("#title").textContent = `${session.experiment} · ${session.kind} · key ${session.label_key_version}`;
+  const who = labeller();
+  if (!who) { $("#point").innerHTML = '<p class="muted">Enter a labeller pseudonym (e.g. L1) to begin.</p>'; return; }
+  if (!PSEUDONYM.test(who)) {
+    $("#labeller").classList.add("bad");
+    $("#point").innerHTML = '<p class="err">The saved pseudonym is not valid: use 1-16 letters, digits, - or _ with no spaces (for example labeller-1).</p>';
+    return;
+  }
+  const pts = await getJSON(`/api/points?labeller=${encodeURIComponent(who)}`);
+  total = pts.length;
+  doneCount = pts.filter(p => p.done).length;
+  queue = pts.filter(p => !p.done).sort((a, b) => a.draw_order - b.draw_order).map(p => p.point_id);
+  next();
+}
+
+function progress() {
+  $("#progress").textContent = `${doneCount} / ${total} points`;
+  $("#bar").style.width = `${total ? (100 * doneCount / total) : 0}%`;
+}
+
+function dateTag(iso) {
+  const d = iso.slice(0, 10);
+  if (!session.peak_date) return "";
+  return d < session.peak_date ? '<span class="tag">before peak</span>'
+       : d === session.peak_date ? '<span class="tag">peak day</span>'
+       : '<span class="tag">after peak</span>';
+}
+
+function chipHTML(img, pid, name, caption) {
+  const cell = name.endsWith("close") ? '<span class="cell" style="width:1.6%;height:1.6%"></span>' : "";
+  const src = `/api/chip/${encodeURIComponent(img.key)}/${pid}/${name}.png`;
+  return `<figure><div class="chip"><span class="loading">rendering…</span>
+    <img alt="${caption}" src="${src}" onload="this.previousElementSibling.remove()"
+         onerror="this.previousElementSibling.textContent='failed'">${cell}</div>
+    <figcaption>${caption}</figcaption></figure>`;
+}
+
+async function next() {
+  progress();
+  labels = {}; active = 0;
+  if (!queue.length) {
+    $("#point").innerHTML = '<p>All points are labelled for this labeller. Thank you.</p>';
+    $("#saveBtn").disabled = true; $("#timer").textContent = ""; return;
+  }
+  const pid = queue[0];
+  $("#point").innerHTML = '<p class="muted">Loading point…</p>';
+  current = await getJSON(`/api/point/${pid}`);
+  const events = current.images.filter(i => i.role === "event");
+  const parts = current.images.map((img, idx) => {
+    const when = (img.datetime || "").replace("T", " ").slice(0, 16) + " UTC";
+    const cloud = img.cloud == null ? "" : `<span class="tag">tile cloud ${Math.round(img.cloud)}%</span>`;
+    const tier = img.tier ? `<span class="tag warn">Landsat ${img.tier}: weaker geolocation</span>` : "";
+    const head = img.role === "pre_event"
+      ? `<span class="tag">pre-event reference</span> ${img.source} · ${when}`
+      : `${img.source} · ${when} ${dateTag(img.datetime || "")} ${cloud} ${tier}`;
+    const chips = ["true_wide", "false_wide", "true_close", "false_close"].map(n =>
+      chipHTML(img, pid, n, { true_wide: "true colour · 2.56 km", false_wide: "false colour · 2.56 km",
+                              true_close: "true colour · 640 m", false_close: "false colour · 640 m" }[n])).join("");
+    const ctl = img.role !== "event" ? "" : `
+      <div class="ctl" data-image="${img.image_id}">
+        ${session.classes.map((c, k) => `<button data-class="${c}">${c} <kbd>${k + 1}</kbd></button>`).join("")}
+        <select class="reason" hidden><option value="">reason…</option>
+          ${session.reasons.map(r => `<option value="${r}">${r}</option>`).join("")}</select>
+        <span class="muted">confidence</span>
+        ${[1, 2, 3].map(v => `<button class="conf" data-conf="${v}">${v} <kbd>${v + 6}</kbd></button>`).join("")}
+        <input class="notes" type="text" maxlength="300" placeholder="notes (optional, no personal data)">
+      </div>`;
+    return `<section class="img" data-role="${img.role}" data-image="${img.image_id}"><h2>${head}</h2>
+      <div class="chips">${chips}</div>${ctl}</section>`;
+  });
+  $("#point").innerHTML = `<p class="muted">Point ${current.point_id} · ${current.lat.toFixed(5)}, ${current.lon.toFixed(5)}
+     · ${events.length} event image(s)</p>` + parts.join("") +
+     (events.length ? "" : '<p class="err">No event image covers this point. Save records nothing; it is skipped.</p>');
+  events.forEach(e => labels[e.image_id] = { image_id: e.image_id, class: null, unobservable_reason: "", confidence: null, notes: "" });
+  document.querySelectorAll(".ctl").forEach(bindControls);
+  shownAt = performance.now();
+  focusImage(0);
+  refresh();
+}
+
+function bindControls(ctl) {
+  const id = ctl.dataset.image;
+  ctl.querySelectorAll("button[data-class]").forEach(b => b.onclick = () => setClass(id, b.dataset.class));
+  ctl.querySelectorAll("button.conf").forEach(b => b.onclick = () => setConfidence(id, +b.dataset.conf));
+  ctl.querySelector(".reason").onchange = (e) => { labels[id].unobservable_reason = e.target.value; refresh(); };
+  ctl.querySelector(".notes").oninput = (e) => { labels[id].notes = e.target.value; };
+  ctl.closest(".img").addEventListener("click", () => {
+    const ids = Object.keys(labels); focusImage(ids.indexOf(id));
+  });
+}
+
+function setClass(id, cls) {
+  const l = labels[id];
+  l.class = cls;
+  if (cls !== "unobservable") l.unobservable_reason = "";
+  refresh();
+}
+
+function setConfidence(id, value) {
+  labels[id].confidence = value;
+  refresh();
+  const ids = Object.keys(labels);
+  if (complete(labels[id]) && ids[active] === id) focusImage(active + 1);
+}
+
+function complete(l) {
+  return l.class && l.confidence && (l.class !== "unobservable" || l.unobservable_reason);
+}
+
+function refresh() {
+  for (const [id, l] of Object.entries(labels)) {
+    const ctl = document.querySelector(`.ctl[data-image="${id}"]`);
+    ctl.querySelectorAll("button[data-class]").forEach(b => b.classList.toggle("on", b.dataset.class === l.class));
+    ctl.querySelectorAll("button.conf").forEach(b => b.classList.toggle("on", +b.dataset.conf === l.confidence));
+    const sel = ctl.querySelector(".reason");
+    sel.hidden = l.class !== "unobservable"; sel.value = l.unobservable_reason;
+  }
+  const ids = Object.keys(labels);
+  const ready = ids.length > 0 && ids.every(id => complete(labels[id]));
+  $("#saveBtn").disabled = !ready && ids.length > 0;
+  $("#status").textContent = ids.length ? `${ids.filter(id => complete(labels[id])).length} / ${ids.length} images labelled` : "";
+}
+
+function focusImage(i) {
+  const secs = [...document.querySelectorAll('section.img[data-role="event"]')];
+  if (!secs.length) return;
+  active = Math.max(0, Math.min(secs.length - 1, i));
+  secs.forEach((s, k) => s.classList.toggle("active", k === active));
+  secs[active].scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+async function save() {
+  if ($("#saveBtn").disabled) return;
+  const rows = Object.values(labels);
+  const elapsed = (performance.now() - shownAt) / 1000;
+  $("#saveBtn").disabled = true;
+  banner("");
+  try {
+    if (rows.length) {
+      await getJSON("/api/label", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ labeller: labeller(), point_id: current.point_id, round: "primary",
+                               elapsed_s: elapsed, rows }) });
+      doneCount++;
+    }
+    queue.shift();
+    $("#status").textContent = rows.length ? `saved ${current.point_id}` : `skipped ${current.point_id} (no event image)`;
+    next();
+  } catch (e) {
+    $("#status").textContent = "";
+    banner(`Not saved: ${e.message}`);
+    refresh();
+  }
+}
+$("#saveBtn").onclick = save;
+
+document.addEventListener("keydown", (e) => {
+  if (e.target.matches("input, select")) { if (e.key === "Enter") e.target.blur(); return; }
+  const ids = Object.keys(labels);
+  const id = ids[active];
+  const k = e.key.toLowerCase();
+  if (k === "enter") { e.preventDefault(); save(); return; }
+  if (k === "arrowdown") { e.preventDefault(); focusImage(active + 1); return; }
+  if (k === "arrowup") { e.preventDefault(); focusImage(active - 1); return; }
+  if (!id) return;
+  if (k.length === 1 && "1234".includes(k)) { setClass(id, session.classes[+k - 1]); }
+  else if (k in CONF_KEYS) { setConfidence(id, CONF_KEYS[k]); }
+  else if (k in REASON_KEYS && labels[id].class === "unobservable") { labels[id].unobservable_reason = REASON_KEYS[k]; refresh(); }
+});
+
+setInterval(() => { if (current && queue.length) $("#timer").textContent = `${Math.round((performance.now() - shownAt) / 1000)} s on this point`; }, 1000);
+start().catch(e => { $("#point").innerHTML = `<p class="err">${e.message}</p>`; });
+</script>
+</body>
+</html>

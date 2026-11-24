@@ -1,0 +1,7 @@
+# Agent Norwood - Satellite expert
+-r ../../requirements.txt
+
+# --- needed once search_datasets / read_note stop being stubs -------------
+# pystac-client>=0.8.0     # STAC catalogue search (Earth Search; no signing)
+# shapely>=2.0             # AOI geometry
+# python-frontmatter>=1.1  # reading the Obsidian vault's YAML frontmatter

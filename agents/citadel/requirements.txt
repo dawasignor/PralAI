@@ -1,0 +1,8 @@
+# Agent Citadel - City Planner
+-r ../../requirements.txt
+
+# --- needed once rank_options stops being a stub --------------------------
+# numpy>=1.26
+# pandas>=2.2               # criteria x options matrix
+# scikit-criteria>=0.8      # MCDM (TOPSIS, weighted sum) -- or roll your own
+# python-frontmatter>=1.1   # reading criteria/weights out of the vault

@@ -1,0 +1,7 @@
+# Entro - Uncertainty Analyser
+-r ../../requirements.txt
+
+# --- needed once score_uncertainty stops being a stub ---------------------
+# numpy>=1.26
+# scipy>=1.12               # distributions, propagation
+# scikit-learn>=1.4         # calibration curves, Brier score

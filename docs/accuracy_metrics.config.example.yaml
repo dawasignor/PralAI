@@ -1,0 +1,76 @@
+# accuracy_metrics -- config.yaml (example; every value is a placeholder)
+#
+# Copy beside the experiment, e.g. experiments/<event>/validation/config.yaml,
+# and fill it in. Relative paths are resolved against THIS file's folder.
+# A required value left as TODO stops the run with the list of what is missing:
+# nothing is assumed (validation plan rule 4).
+
+event: TODO                       # experiment slug, e.g. kelani-2025-west
+seed: 20251128                    # fixed seed (plan rule 4); the pipeline itself draws no random numbers
+output_dir: TODO                  # where agreement_table.csv/.md and agreement.json go
+
+reference:
+  code: TODO                      # e.g. FL20251128LKA (UNOSAT event code)
+  zip: TODO                       # the HDX shapefile zip, as downloaded
+  flood_layer: TODO               # layer name inside the zip, without .shp
+  flood_where: {}                 # keep only features whose attributes match, read from the
+                                  # layer's .dbf, e.g. {notation: [Flooded area, Flood trace]}
+  exclude_layers: []              # layers removed from the domain (e.g. cloud obstruction);
+                                  # an item may be {layer: ..., where: {field: [values]}}
+  analysed_extent_layer: null     # where the reference LOOKED; outside it is out of the domain
+  image: {}                       # optional: sensor, resolution_m, acquired, phase
+  credit: TODO                    # licence credit, e.g. "UNOSAT / UNITAR, CC BY-SA, via HDX"
+  description: TODO               # one line: what the reference is
+
+temporal:
+  mode: TODO                      # cumulative | single_date (plan step 1: do not guess)
+  window: [TODO, TODO]            # cumulative: first and last day, inclusive
+  date: null                      # single_date: the day
+  tolerance_days: 1               # single_date: +/- days
+
+grid:
+  crs: EPSG:32644                 # projected evaluation CRS (plan default UTM 44N)
+  resolution_m: 10                # reference rasterisation resolution (plan default)
+
+aoi:
+  bbox: [TODO, TODO, TODO, TODO]  # west, south, east, north (WGS84)
+
+domain:
+  exclude_wbm_classes: [ocean]    # Copernicus DEM Water Body Mask classes removed (sea)
+  permanent_water:
+    raster: TODO                  # JRC water_class.tif from fetch_permanent_water
+    classes: [3]                  # 3 = permanent (>= 90% occurrence)
+
+evaluation:
+  flood_fraction_threshold: 0.5   # product pixel is reference flood above this share
+  domain_fraction_threshold: 0.5  # product pixel is in the domain above this share
+
+topsis:
+  path: TODO                      # cached mcdm.json (ranking) or a CSV: product,score,rank
+
+assumptions: []                   # stated limits the interpretation must carry
+
+# One entry per product; the key is the MCDM alternative id. Encoding is
+# harmonised to 1 = flood, 0 = non-flood, 255 = no-data from these lists --
+# never guessed.
+products:
+  gfm:
+    label: GFM (Sentinel-1)
+    sensor: SAR
+    source: stac                  # stac | files | null (null = not evaluated)
+    stac: https://stac.eodc.eu/api/v1
+    collection: GFM
+    flood_asset: ensemble_flood_extent
+    encoding: {flood: [1], nonflood: [0], nodata: [255]}
+    nodata_masks:                 # companion layers that make a pixel no-data
+      - {asset: exclusion_mask, values: [1]}
+  dswx_hls:
+    label: OPERA DSWx-HLS
+    sensor: Optical
+    source: null
+    not_evaluated_reason: TODO
+  # A product behind a login is listed as local files:
+  #   source: files
+  #   encoding: {flood: [...], nonflood: [...], nodata: [...]}
+  #   files:
+  #     - {path: ..., datetime: ..., nodata_masks: [{path: ..., values: [...]}]}
